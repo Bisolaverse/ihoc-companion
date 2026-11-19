@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IHOC Companion – clickable MVP prototype</title>
+<style>
+  :root{
+    --ink:#17322d; --green:#1f4d45; --green-2:#2f6b5f; --mint:#e3f0ec; --sun:#f2b629; --sun-soft:#fdf1cf;
+    --line:#e3e6e4; --muted:#5d6b67; --bg:#f3f5f4; --white:#fff; --red:#b3402a; --red-soft:#fbe7e2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#dfe5e2;color:var(--ink);min-height:100vh;display:flex;gap:40px;align-items:center;justify-content:center;padding:24px}
+  button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  .guide{width:320px;background:var(--white);border-radius:18px;padding:22px;box-shadow:0 6px 24px rgba(23,50,45,.08)}
+  .guide h1{font-size:18px;margin-bottom:4px}
+  .guide p{font-size:13px;color:var(--muted);line-height:1.45;margin-bottom:12px}
+  .guide ol{font-size:13px;padding-left:18px;margin-bottom:14px;line-height:1.7}
+  .guide li.on{font-weight:700;color:var(--green)}
+  .guide .btn{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);font-size:13px;margin-bottom:8px}
+  .guide .btn:hover{background:var(--mint)}
+  .guide .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--sun-soft);color:#7a5800;margin-bottom:10px}
+  .guide .note{font-size:11px;color:var(--muted);margin-top:10px}
+  .phone{width:390px;height:800px;background:var(--white);border-radius:44px;border:10px solid #111;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.25);flex-shrink:0}
+  .status{height:38px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-size:13px;font-weight:600}
+  .screen{position:absolute;top:38px;left:0;right:0;bottom:0;display:flex;flex-direction:column;padding:12px 24px 28px;overflow-y:auto}
+  .screen.tabbed{padding-bottom:84px}
+  .screen.hidden{display:none}
+  .screen > *{flex-shrink:0}
+  .top{display:flex;align-items:center;gap:10px;min-height:32px;margin-bottom:8px}
+  .back{font-size:22px;width:32px;height:32px;border-radius:50%}
+  .back:hover{background:var(--bg)}
+  .steps{flex:1;display:flex;gap:4px}
+  .steps i{flex:1;height:4px;border-radius:4px;background:var(--line)}
+  .steps i.on{background:var(--green)}
+  h2{font-size:26px;line-height:1.15;margin:8px 0 10px;letter-spacing:-.3px}
+  h3{font-size:17px;margin-bottom:6px}
+  .lead{font-size:15px;color:var(--muted);line-height:1.5}
+  .grow{flex:1}
+  .cta{display:block;width:100%;padding:16px;border-radius:14px;background:var(--green);color:#fff;font-weight:700;font-size:16px;text-align:center;margin-top:12px}
+  .cta:hover{background:var(--green-2)}
+  .cta.ghost{background:transparent;color:var(--green);border:1.5px solid var(--green)}
+  .cta.ghost:hover{background:var(--mint)}
+  .cta.small{padding:10px;font-size:14px;margin-top:10px}
+  .cta[disabled]{background:#b9c4c1;cursor:not-allowed}
+  .link{color:var(--green);font-weight:600;font-size:14px;text-align:center;display:block;width:100%;padding:10px}
+  .card{border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:14px}
+  .card.mint{background:var(--mint);border-color:transparent}
+  .card.sun{background:var(--sun-soft);border-color:transparent}
+  .card.red{background:var(--red-soft);border-color:transparent}
+  .small{font-size:12.5px;color:var(--muted);line-height:1.45}
+  .row{display:flex;align-items:center;gap:12px}
+  .pill{display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--mint);color:var(--green)}
+  .pill.sun{background:var(--sun-soft);color:#7a5800}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{padding:10px 14px;border-radius:99px;border:1.5px solid var(--line);font-size:14px;font-weight:600}
+  .chip.on{border-color:var(--green);background:var(--mint);color:var(--green)}
+  .chip.sm{padding:7px 12px;font-size:13px}
+  .art{display:flex;justify-content:center;margin:10px 0 6px}
+  .viewfinder{flex:1;margin:6px -24px 0;background:#1d2422;position:relative;display:flex;align-items:center;justify-content:center;min-height:380px}
+  .frame{width:220px;height:220px;border-radius:22px;position:relative}
+  .frame:before{content:"";position:absolute;inset:0;border-radius:22px;border:4px solid rgba(255,255,255,.9);clip-path:polygon(0 0,30% 0,30% 4%,4% 4%,4% 30%,0 30%,0 70%,4% 70%,4% 96%,30% 96%,30% 100%,70% 100%,70% 96%,96% 96%,96% 70%,100% 70%,100% 30%,96% 30%,96% 4%,70% 4%,70% 0,100% 0,100% 100%,0 100%)}
+  .qr{position:absolute;inset:38px;background:#fff;border-radius:10px;display:grid;grid-template-columns:repeat(9,1fr);gap:2px;padding:10px;cursor:pointer}
+  .qr b{background:#111;border-radius:1px}
+  .qr b.w{background:#fff}
+  .scanline{position:absolute;left:20px;right:20px;height:2px;background:var(--sun);top:20px;animation:scan 1.8s ease-in-out infinite;box-shadow:0 0 12px var(--sun)}
+  @keyframes scan{50%{top:196px}}
+  .vf-text{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:#fff;font-size:14px}
+  .demo{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
+  .demo button{color:var(--green);font-weight:600;text-decoration:underline}
+  .opt{display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px 16px;border:1.5px solid var(--line);border-radius:14px;margin-top:8px;font-size:15px;font-weight:600;text-align:left;gap:10px}
+  button.opt:hover,.opt.on{border-color:var(--green);background:var(--mint)}
+  .opt span{font-size:12px;font-weight:500;color:var(--muted)}
+  .toggle{width:46px;height:28px;border-radius:99px;background:#cdd5d2;position:relative;flex-shrink:0;transition:.15s;cursor:pointer}
+  .toggle:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.15s}
+  .toggle.on{background:var(--green)}
+  .toggle.on:after{left:21px}
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:5}
+  .scrim.hidden{display:none}
+  .dialog{width:270px;background:#f2f2f2;border-radius:14px;text-align:center;overflow:hidden}
+  .dialog .body{padding:18px 16px}
+  .dialog h4{font-size:15px;margin-bottom:6px}
+  .dialog p{font-size:12.5px;color:#333;line-height:1.4}
+  .dialog .btns{display:flex;border-top:1px solid #ccc}
+  .dialog .btns button{flex:1;padding:12px;color:#0a64d6;font-size:15px}
+  .dialog .btns button+button{border-left:1px solid #ccc;font-weight:700}
+  /* Workout player */
+  .video{position:relative;background:linear-gradient(180deg,#eef6f3,#dcebe6);border-radius:20px;height:250px;margin-top:6px;overflow:hidden}
+  .video svg{position:absolute;inset:0;margin:auto}
+  .video .badge{position:absolute;left:12px;top:12px;font-size:11px;font-weight:700;background:rgba(255,255,255,.85);padding:4px 9px;border-radius:99px;color:var(--green)}
+  .video .area{position:absolute;left:12px;bottom:26px;font-size:11px;font-weight:700;background:var(--red-soft);padding:4px 9px;border-radius:99px;color:var(--red)}
+  .video .bar{position:absolute;left:12px;right:12px;bottom:12px;height:5px;border-radius:5px;background:rgba(23,50,45,.15)}
+  .video .bar i{display:block;height:100%;width:0;border-radius:5px;background:var(--green);transition:width .9s linear}
+  .video.paused .anim, .video.paused .spin{animation-play-state:paused}
+  .moves{display:flex;gap:6px;margin:12px 0 4px}
+  .moves i{flex:1;height:6px;border-radius:6px;background:var(--line)}
+  .moves i.done{background:var(--green)}
+  .moves i.now{background:var(--sun)}
+  .timer{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px}
+  .timer b{font-size:30px}
+  .anim{transform-box:view-box}
+  @keyframes shrug{0%,100%{transform:translate(0,0)}25%{transform:translate(0,-8px)}50%{transform:translate(0,-4px)}75%{transform:translate(0,2px)}}
+  @keyframes tuck{0%,30%,100%{transform:translateX(0)}50%,80%{transform:translateX(-9px)}}
+  @keyframes openL{0%,100%{transform:rotate(0)}50%{transform:rotate(22deg)}}
+  @keyframes openR{0%,100%{transform:rotate(0)}50%{transform:rotate(-22deg)}}
+  @keyframes twist{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+  @keyframes tilt{0%,20%,100%{transform:rotate(0)}45%,70%{transform:rotate(18deg)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spin{transform-box:fill-box;transform-origin:center;animation:spin 2.4s linear infinite}
+  .price{display:flex;gap:10px;margin-top:12px}
+  .price div{flex:1;border:1.5px solid var(--line);border-radius:14px;padding:12px;text-align:center;background:#fff}
+  .price div.best{border-color:var(--green)}
+  .price b{display:block;font-size:20px}
+  .price span{font-size:12px;color:var(--muted)}
+  .tabbar{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-around;border-top:1px solid var(--line);padding:8px 0 18px;background:#fff;z-index:4}
+  .tabbar.hidden{display:none}
+  .tabbar button{font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;width:80px}
+  .tabbar button b{font-size:18px;line-height:1}
+  .tabbar button.on{color:var(--green);font-weight:700}
+  .tick{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .thumb{width:46px;height:46px;border-radius:12px;background:var(--mint);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .wk{display:flex;align-items:center;gap:12px;width:100%;padding:10px;border:1.5px solid var(--line);border-radius:14px;margin-top:8px;text-align:left}
+  .wk:hover{border-color:var(--green);background:var(--mint)}
+  .wk b{display:block;font-size:15px}
+  .wk span{font-size:12px;color:var(--muted)}
+  .wk em{margin-left:auto;font-style:normal;font-size:12px;color:var(--green);font-weight:700}
+  .shop{display:flex;gap:10px;overflow-x:auto;margin:8px -24px 0;padding:0 24px 4px}
+  .shop div{min-width:132px;border:1.5px solid var(--line);border-radius:14px;padding:10px}
+  .shop div .img{height:62px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+  .shop b{font-size:13px;display:block}
+  .shop span{font-size:12px;color:var(--muted)}
+  .shop button{display:block;margin-top:6px;font-size:12px;font-weight:700;color:var(--green)}
+  .avatar{width:56px;height:56px;border-radius:50%;background:var(--sun-soft);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;color:#7a5800}
+  .stats{display:flex;gap:10px;margin-top:14px}
+  .stats div{flex:1;background:var(--bg);border-radius:14px;padding:12px}
+  .stats b{font-size:22px;display:block}
+  .stats span{font-size:12px;color:var(--muted)}
+  .spy{margin-top:16px;background:var(--bg);border-radius:20px;padding:22px;text-align:center}
+  .spyDot{width:110px;height:110px;border-radius:50%;margin:6px auto 14px;background:#4caf7a;transition:background .3s;box-shadow:0 0 0 10px rgba(255,255,255,.7)}
+  .spyPrompt{font-size:22px;font-weight:800;margin-bottom:12px}
+  .bar2{height:5px;border-radius:5px;background:rgba(23,50,45,.15);margin:8px 0}
+  .bar2 i{display:block;height:100%;width:0;border-radius:5px;background:var(--green);transition:width 1s linear}
+  .breath{margin:16px 0 12px;height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#fff9e8,#fdf1cf);border-radius:20px;position:relative}
+  .breath .circle{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,#f2b629,#f7d27a);opacity:.9;transform:scale(.8)}
+  .breath.on .circle{animation:breathe 8s ease-in-out infinite}
+  @keyframes breathe{0%,100%{transform:scale(.8)}50%{transform:scale(1.7)}}
+  .breath p{position:absolute;bottom:18px;font-weight:700;color:#7a5800}
+  .player{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:14px;padding:12px}
+  .play{width:44px;height:44px;border-radius:50%;background:var(--green);color:#fff;font-size:16px;flex-shrink:0}
+  .toast{position:absolute;left:16px;right:16px;bottom:90px;background:var(--ink);color:#fff;padding:12px 14px;border-radius:12px;font-size:13px;z-index:6;transition:.25s;opacity:0;transform:translateY(10px);pointer-events:none}
+  .toast.show{opacity:1;transform:none}
+  .cta.small{color:#fff;line-height:1.2}
+  .cta.small.ghost{color:var(--green)}
+  @media (max-width:820px){
+    body{flex-direction:column-reverse;padding:0;gap:0;background:#fff}
+    .phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}
+    .guide{width:100%;border-radius:0;box-shadow:none;border-top:1px solid var(--line)}
+  }
+</style>
+</head>
+<body>
+
+<aside class="guide" aria-label="How to use this prototype">
+  <span class="tag">Clickable MVP prototype</span>
+  <h1>IHOC Companion</h1>
+  <p>Core flow for the primary user, Lena, who has just unpacked her IHOC chair. Then see Day 2, when a nudge brings her back for a two-minute break. Everything runs in your browser; nothing is saved or sent.</p>
+  <ol id="guideSteps">
+    <li data-s="welcome">Scan the code on the chair</li>
+    <li data-s="found">Welcome and chair recognised</li>
+    <li data-s="feel">Two quick questions</li>
+    <li data-s="setup">3-step chair setup</li>
+    <li data-s="nudges">Choose up to 3 nudges</li>
+    <li data-s="routine">First 2-minute break</li>
+    <li data-s="trial">6 weeks free, then pay</li>
+    <li data-s="home">Today, Breaks, My chair and Me</li>
+  </ol>
+  <button class="btn" onclick="restart()">▶ Start the happy path</button>
+  <button class="btn" onclick="day2()">↻ Day 2: a break nudge arrives at 10:30</button>
+  <button class="btn" onclick="jumpUnknown()">⚠ Edge state: chair model not recognised</button>
+  <button class="btn" onclick="jumpNudges()">⚠ Edge state: notifications declined</button>
+  <button class="btn" onclick="jumpHome()">☰ Explore the app's four tabs</button>
+  <p class="note">Prototype for a Product People assessment. IHOC, its chair models, accessories and prices are illustrative. Audio is simulated. Breaks are general wellness content and not medical advice.</p>
+</aside>
+
+<div class="phone" id="phone">
+  <div class="status"><span id="clock">9:41</span><span>●●● ▮</span></div>
+
+  <!-- Welcome -->
+  <section class="screen" id="welcome">
+    <div class="top"><span class="pill">IHOC Companion</span></div>
+    <div class="art">
+      <svg width="250" height="190" viewBox="0 0 250 190" aria-hidden="true">
+        <rect x="20" y="40" width="210" height="140" rx="10" fill="#e9dcc3"/><rect x="20" y="40" width="210" height="26" rx="6" fill="#d9c9aa"/>
+        <rect x="70" y="18" width="110" height="140" rx="10" fill="#fff" stroke="#e3e6e4" transform="rotate(-6 125 88)"/>
+        <g transform="rotate(-6 125 88)"><rect x="98" y="38" width="54" height="54" rx="6" fill="#17322d"/><rect x="106" y="46" width="14" height="14" fill="#fff"/><rect x="130" y="46" width="14" height="14" fill="#fff"/><rect x="106" y="70" width="14" height="14" fill="#fff"/><rect x="130" y="70" width="6" height="6" fill="#fff"/><rect x="138" y="78" width="6" height="6" fill="#fff"/>
+        <rect x="86" y="104" width="78" height="8" rx="4" fill="#1f4d45"/><rect x="92" y="118" width="66" height="6" rx="3" fill="#c9d3d0"/><rect x="98" y="130" width="54" height="6" rx="3" fill="#c9d3d0"/></g>
+      </svg>
+    </div>
+    <h2>Feel good through your whole workday</h2>
+    <p class="lead">Scan the QR code on your chair's tag or box.</p>
+    <div class="grow"></div>
+    <button class="cta" onclick="go('scan')">Scan the code</button>
+    <button class="link" onclick="toast('In the full app you can type the 8-character code from the tag.')">Type the code instead</button>
+  </section>
+
+  <!-- Scan -->
+  <section class="screen" id="scan">
+    <div class="top"><button class="back" onclick="go('welcome')" aria-label="Back">‹</button><h3>Scan the code</h3></div>
+    <div class="viewfinder">
+      <div class="frame">
+        <div class="qr" id="qr" onclick="scanned(true)" role="button" aria-label="Scan this code"></div>
+        <div class="scanline"></div>
+      </div>
+      <div class="vf-text">Tap the code to scan it</div>
+    </div>
+    <p class="demo">Prototype: <button onclick="scanned(false)">scan an older chair's code instead</button></p>
+  </section>
+
+  <!-- Found -->
+  <section class="screen" id="found">
+    <div class="top"><button class="back" onclick="go('scan')" aria-label="Back">‹</button></div>
+    <div class="art" id="chairArt"></div>
+    <span class="pill" style="align-self:flex-start">✓ Chair recognised</span>
+    <h2>Welcome, Lena</h2>
+    <p class="lead" style="font-size:17px;color:var(--ink);font-weight:600" id="foundModel">IHOC ErgoFlex Pro</p>
+    <p class="lead" style="margin-top:12px">Let's set up your chair.</p>
+    <div class="grow"></div>
+    <button class="cta" onclick="go('feel')">Set it up with me</button>
+    <button class="link" onclick="go('unknown')">That's not my chair</button>
+  </section>
+
+  <!-- Unknown (edge state) -->
+  <section class="screen" id="unknown">
+    <div class="top"><button class="back" onclick="go('scan')" aria-label="Back">‹</button></div>
+    <div class="card red" style="margin-top:4px">
+      <div class="row"><span style="font-size:26px">⚠</span><div><b>We don't recognise this chair model</b><p class="small">This code might be from an older model, or it didn't read clearly.</p></div></div>
+    </div>
+    <h2 style="font-size:22px">Which chair do you have?</h2>
+    <p class="small">The model name is on the sticker under the seat.</p>
+    <div>
+      <button class="opt" onclick="pickModel('IHOC ErgoFlex Pro')">IHOC ErgoFlex Pro <span>2024–</span></button>
+      <button class="opt" onclick="pickModel('IHOC ErgoFlex')">IHOC ErgoFlex <span>2021–2024</span></button>
+      <button class="opt" onclick="pickModel('IHOC Relax Massage')">IHOC Relax Massage <span>2023–</span></button>
+      <button class="opt" onclick="pickModel('IHOC Task 2')">IHOC Task 2 <span>2019–2022</span></button>
+    </div>
+    <div class="grow"></div>
+    <button class="cta ghost" onclick="generalSetup()">I can't find it: use the general setup</button>
+    <button class="link" onclick="go('scan')">Try scanning again</button>
+  </section>
+
+  <!-- Two questions -->
+  <section class="screen" id="feel">
+    <div class="top"><button class="back" onclick="go(state.general?'unknown':'found')" aria-label="Back">‹</button><div class="steps"><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+    <h2>Two quick questions</h2>
+    <h3 style="margin-top:6px">What would make your workday feel better?</h3>
+    <div class="chips" id="feelChips">
+      <button class="chip" onclick="chip(this)">Moving more</button><button class="chip" onclick="chip(this)">Resting my eyes</button>
+      <button class="chip" onclick="chip(this)">Feeling calmer</button><button class="chip" onclick="chip(this)">More energy</button>
+    </div>
+    <h3 style="margin-top:20px">Where do you usually work?</h3>
+    <div class="chips" id="whereChips">
+      <button class="chip" onclick="single(this)">At home</button><button class="chip" onclick="single(this)">In the office</button><button class="chip" onclick="single(this)">Both</button>
+    </div>
+    <div class="card sun">
+      <p style="font-size:14px;line-height:1.45"><b>Research shows</b> that short breaks during the workday leave people feeling less tired and more energetic.¹ We'll help you fit two-minute breaks into your day.</p>
+      <p class="small" style="margin-top:6px">¹ Albulescu et al., PLOS ONE, 2022.</p>
+    </div>
+    <div class="grow"></div>
+    <button class="cta" onclick="startSetup()">Continue</button>
+  </section>
+
+  <!-- Setup -->
+  <section class="screen" id="setup">
+    <div class="top"><button class="back" onclick="setupBack()" aria-label="Back">‹</button><div class="steps" id="setupBar"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+    <p class="small" id="setupCount">Step 1 of 3</p>
+    <h2 id="setupTitle">Seat height</h2>
+    <div class="art" id="setupArt"></div>
+    <p class="lead" id="setupText"></p>
+    <div class="card sun" id="setupTip" style="display:none"></div>
+    <div class="grow"></div>
+    <button class="cta" id="setupBtn" onclick="setupNext()">Done, next step</button>
+  </section>
+
+  <!-- Nudges -->
+  <section class="screen" id="nudges">
+    <div class="top"><button class="back" onclick="go('setup')" aria-label="Back">‹</button><div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div>
+    <h2>When should we nudge you?</h2>
+    <p class="lead">Pick up to 3 moments. Each nudge leads to a 2-minute break.</p>
+    <div id="nudgeList">
+      <div class="opt">10:30 · Move <div class="toggle on" role="switch" aria-checked="true" onclick="tog(this)"></div></div>
+      <div class="opt">11:45 · Rest your eyes <div class="toggle on" role="switch" aria-checked="true" onclick="tog(this)"></div></div>
+      <div class="opt">16:00 · Calm down <div class="toggle on" role="switch" aria-checked="true" onclick="tog(this)"></div></div>
+      <div class="opt">18:00 · Evening wind-down <div class="toggle" role="switch" aria-checked="false" onclick="tog(this)"></div></div>
+    </div>
+    <p class="small" id="nudgeHint" style="margin-top:10px">3 of 3 chosen.</p>
+    <div class="card red" id="declined" style="display:none">
+      <b>Notifications are off</b>
+      <p class="small">No problem. Your breaks will wait for you on the Today screen, and you can turn nudges on any time in Settings.</p>
+    </div>
+    <div class="grow"></div>
+    <button class="cta" id="nudgeBtn" onclick="askNotif()">Turn on my nudges</button>
+    <div class="scrim hidden" id="notifDialog">
+      <div class="dialog"><div class="body"><h4>"IHOC Companion" would like to send you notifications</h4><p>Notifications may include alerts, sounds and icon badges.</p></div>
+        <div class="btns"><button onclick="notif(false)">Don't Allow</button><button onclick="notif(true)">Allow</button></div></div>
+    </div>
+  </section>
+
+  <!-- Workout player -->
+  <section class="screen" id="routine">
+    <div class="top"><button class="back" onclick="leavePlayer()" aria-label="Back">‹</button><div class="steps" id="playerSteps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
+    <p class="small" id="playerSub">Your first break · a desk workout</p>
+    <h2 id="playerTitle" style="margin-bottom:4px">Shoulder reset</h2>
+    <div class="video paused" id="video">
+      <span class="badge">▶ Physio-designed video</span>
+      <span class="area" id="moveArea">Shoulders</span>
+      <div id="moveSvg"></div>
+      <div class="bar"><i id="moveBar"></i></div>
+    </div>
+    <div class="moves" id="moves"><i></i><i></i><i></i><i></i></div>
+    <div class="timer"><h3 id="moveName" style="margin:0">Shoulder rolls</h3><b id="secs">0:30</b></div>
+    <p class="lead" id="moveText" style="font-size:14px">Sit back in your chair. Roll both shoulders up, back and down, slowly.</p>
+    <div class="grow"></div>
+    <button class="cta" id="routineBtn" onclick="startRoutine()">Start · 2 minutes</button>
+    <button class="link" id="skipBtn" onclick="skipMove()">Skip this move</button>
+  </section>
+
+  <!-- Day 2 lock screen -->
+  <section class="screen hidden" id="lock" style="background:linear-gradient(165deg,#1f4d45,#2f6f62);color:#fff;align-items:center;padding-top:40px">
+    <div style="font-size:15px;opacity:.85">Thursday 12 November</div>
+    <div style="font-size:66px;font-weight:700;line-height:1.05;letter-spacing:-1px">10:30</div>
+    <button onclick="day2Open()" style="margin-top:34px;width:100%;text-align:left;border:0;border-radius:18px;padding:13px 15px;background:rgba(255,255,255,.96);color:#1f1f1f;font:inherit;display:flex;flex-direction:column;gap:3px;box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer">
+      <span style="display:flex;justify-content:space-between;font-size:12px;color:#595959"><span><b style="color:#1f4d45">●</b> IHOC COMPANION</span><span>now</span></span>
+      <b style="font-size:15px">Time to move · 2 minutes</b>
+      <span style="font-size:13px">Your shoulder reset is ready. Tap to start.</span>
+    </button>
+    <div class="grow"></div>
+    <p style="font-size:13px;opacity:.8;text-align:center">Lena picked 10:30 on day one. She doesn't have to plan or search for anything.</p>
+  </section>
+
+  <!-- Trial -->
+  <section class="screen" id="trial">
+    <div class="top"></div>
+    <div class="art"><svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56" fill="#fdf1cf"/><path d="M38 62 L54 78 L84 44" stroke="#1f4d45" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2 style="text-align:center">2 minutes for your shoulders. Nice.</h2>
+    <p class="lead" style="text-align:center">Your chair is set up and your first break is done.</p>
+    <div class="card mint">
+      <b>Your first 6 weeks of Companion are free</b>
+      <p class="small" style="margin-top:4px">Included with your chair: every break, plus new ones each month. Chair setup stays free.</p>
+      <div class="price">
+        <div><span>Then monthly</span><b>€7.99</b><span>cancel any time</span></div>
+        <div class="best"><span>Then yearly</span><b>€49.99</b><span>save 48%</span></div>
+      </div>
+    </div>
+    <p class="small" style="margin-top:12px;text-align:center">No payment details now. We'll remind you 7 days before your free weeks end.</p>
+    <div class="grow"></div>
+    <button class="cta" onclick="go('home')">Start my 6 free weeks</button>
+  </section>
+
+  <!-- I Spy -->
+  <section class="screen" id="ispy">
+    <div class="top"><button class="back" onclick="leaveBreak()" aria-label="Back">‹</button><span class="pill">Rest your eyes</span></div>
+    <h2>I Spy</h2>
+    <p class="lead" style="font-size:14px">Look away from your screen. Finding something across the room gives your eyes a break.</p>
+    <div class="spy">
+      <div class="spyDot" id="spyDot"></div>
+      <p class="spyPrompt" id="spyPrompt">Find something green</p>
+      <div class="bar2"><i id="spyBar"></i></div>
+      <p class="small" id="spyCount">Prompt 1 of 3</p>
+    </div>
+    <div class="grow"></div>
+    <button class="cta" id="spyBtn" onclick="spyFound()">Found it</button>
+    <button class="link" onclick="spyFound()">Skip</button>
+  </section>
+
+  <!-- Calm -->
+  <section class="screen" id="calm">
+    <div class="top"><button class="back" onclick="leaveBreak()" aria-label="Back">‹</button><span class="pill sun">Calm down</span></div>
+    <h2 id="calmTitle">Breathe and reset</h2>
+    <p class="lead" style="font-size:14px">Put your headphones in, sit back and follow the circle.</p>
+    <div class="breath" id="breath"><div class="circle"></div><p id="breathText">Press play</p></div>
+    <div class="player"><button class="play" id="calmPlay" onclick="calmToggle()" aria-label="Play">▶</button><div style="flex:1"><b id="calmTrack">Calm piano</b><div class="bar2"><i id="calmBar"></i></div></div><span id="calmTime">2:00</span></div>
+    <div class="grow"></div>
+    <button class="cta" onclick="calmDone()">Finish</button>
+  </section>
+
+  <!-- Today -->
+  <section class="screen tabbed" id="home">
+    <div class="top" style="justify-content:space-between"><h3 style="margin:0">Today</h3><span class="pill" id="daysPill">Free · 42 days left</span></div>
+    <div class="card sun" style="margin-top:6px">
+      <p class="small" id="nextLabel">Next nudge</p>
+      <div class="row" style="justify-content:space-between"><b style="font-size:20px">11:45 · I Spy</b><span>Rest your eyes</span></div>
+      <p class="small" id="homeNote" style="margin-top:4px">We'll send a gentle notification.</p>
+    </div>
+    <h3 style="margin-top:18px">Today's breaks</h3>
+    <div id="todayList"></div>
+    <div class="card mint">
+      <div class="row"><span class="tick">✓</span><div><b id="homeChair">ErgoFlex Pro set up</b><p class="small">Guides for every feature are in My chair.</p></div></div>
+    </div>
+  </section>
+
+  <!-- Workouts library -->
+  <section class="screen tabbed" id="library">
+    <div class="top"><h3 style="margin:0">Breaks</h3></div>
+    <p class="small">Every break takes 2 minutes or less. Workouts are designed by a physiotherapist.</p>
+    <div class="chips" id="libChips">
+      <button class="chip sm on" onclick="filterLib(this,'all')">All</button><button class="chip sm" onclick="filterLib(this,'move')">Move</button>
+      <button class="chip sm" onclick="filterLib(this,'eyes')">Rest your eyes</button><button class="chip sm" onclick="filterLib(this,'calm')">Calm down</button>
+    </div>
+    <div id="libList"></div>
+  </section>
+
+  <!-- My chair -->
+  <section class="screen tabbed" id="chair">
+    <div class="top"><h3 style="margin:0">My chair</h3></div>
+    <div class="card mint" style="margin-top:4px">
+      <div class="row"><div class="thumb" style="background:#fff" id="chairThumb"></div><div><b id="chairName" style="font-size:16px">IHOC ErgoFlex Pro</b><p class="small">Set up on 11 November</p></div></div>
+      <button class="cta small" onclick="toast('In the full app this walks you through the setup again, for example after moving desks.')">Redo the setup</button>
+    </div>
+    <h3 style="margin-top:18px">Features you might not know about</h3>
+    <button class="wk" onclick="toast('In the full app this plays a 30-second guide video.')"><div class="thumb">↕</div><div><b>Seat depth</b><span>Slide the seat so you can fit two fingers behind your knees</span></div><em>Watch</em></button>
+    <button class="wk" onclick="toast('In the full app this plays a 30-second guide video.')"><div class="thumb">⟲</div><div><b>Tilt tension</b><span>Make leaning back feel lighter or firmer</span></div><em>Watch</em></button>
+    <button class="wk" onclick="toast('In the full app this plays a 30-second guide video.')"><div class="thumb">⇔</div><div><b>Armrest width</b><span>Bring the armrests closer to your body</span></div><em>Watch</em></button>
+    <h3 style="margin-top:18px">For your chair and desk</h3>
+    <div class="shop">
+      <div><div class="img">🪑</div><b>Lumbar cushion</b><span>€39</span><button onclick="toast('Opens this product in the IHOC shop.')">View in shop</button></div>
+      <div><div class="img">🦶</div><b>Footrest</b><span>€49</span><button onclick="toast('Opens this product in the IHOC shop.')">View in shop</button></div>
+      <div><div class="img">🖥️</div><b>Monitor arm</b><span>€89</span><button onclick="toast('Opens this product in the IHOC shop.')">View in shop</button></div>
+    </div>
+    <div class="card sun">
+      <b>Upgrade your chair</b>
+      <p class="small" style="margin-top:4px">Members get 10% off their next IHOC chair or desk.</p>
+      <button class="cta small ghost" onclick="toast('Opens the IHOC shop with the member discount applied.')">See chairs and desks</button>
+    </div>
+  </section>
+
+  <!-- Me -->
+  <section class="screen tabbed" id="me">
+    <div class="top"><h3 style="margin:0">Me</h3></div>
+    <div class="row" style="margin-top:6px"><div class="avatar">L</div><div><b style="font-size:18px">Lena</b><p class="small">Member since 11 November</p></div></div>
+    <div class="stats">
+      <div><b id="statDone">1</b><span>breaks this week</span></div>
+      <div><b>1 day</b><span>streak</span></div>
+    </div>
+    <div class="card mint">
+      <div class="row" style="justify-content:space-between"><b>Free trial</b><span class="pill" id="daysPill2">42 days left</span></div>
+      <p class="small" style="margin-top:4px">Then €7.99 a month or €49.99 a year.</p>
+      <button class="cta small" onclick="toast('In the full app this opens the plan options.')">Choose a plan</button>
+    </div>
+    <h3 style="margin-top:18px">Settings</h3>
+    <button class="opt" onclick="toast('In the full app you can change your nudge times here.')">Nudges <span id="meNudges">10:30, 11:45, 16:00</span></button>
+    <button class="opt" onclick="toast('We keep only what we need to run your breaks, store it in the EU and delete activity after 12 months. No health questions, and employers never see individual activity.')">Privacy <span>What we keep and why</span></button>
+    <button class="opt" onclick="toast('In the full app this opens help and contact options.')">Help <span>›</span></button>
+  </section>
+
+  <nav class="tabbar hidden" id="tabbar">
+    <button data-t="home" onclick="go('home')"><b>●</b>Today</button>
+    <button data-t="library" onclick="go('library')"><b>▶</b>Breaks</button>
+    <button data-t="chair" onclick="go('chair')"><b>🪑</b>My chair</button>
+    <button data-t="me" onclick="go('me')"><b>☺</b>Me</button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const state={general:false,model:'IHOC ErgoFlex Pro',setup:0,notif:null,move:0,timer:null,remaining:0,workout:'reset',onboarding:true,prev:'nudges',done:{reset:false}};
+const SCREENS=['lock','welcome','scan','found','unknown','feel','setup','nudges','routine','ispy','calm','trial','home','library','chair','me'];
+const TABS=['home','library','chair','me'];
+const GUIDE={welcome:'welcome',scan:'welcome',found:'found',unknown:'found',feel:'feel',setup:'setup',nudges:'nudges',routine:'routine',ispy:'home',calm:'home',trial:'trial',home:'home',library:'home',chair:'home',me:'home'};
+function go(id){SCREENS.forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id));
+  document.getElementById('tabbar').classList.toggle('hidden',!TABS.includes(id));
+  document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));
+  document.querySelectorAll('#guideSteps li').forEach(li=>li.classList.toggle('on',li.dataset.s===GUIDE[id]));
+  if(id==='home')renderToday(); if(id==='library')renderLib();}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2600);}
+
+/* ---------- Illustrations ---------- */
+const C={skin:'#d9a27e',hair:'#3b2a20',shirt:'#f2b629',pants:'#3d4a6b',shoe:'#17322d',chair:'#1f4d45',chairD:'#17322d',metal:'#7d8a86',wood:'#cbb594',red:'#b3402a',ok:'#2f6b5f'};
+function chairSvg(w,h){return `<svg width="${w}" height="${h}" viewBox="0 0 120 130" aria-hidden="true">
+ <circle cx="60" cy="64" r="60" fill="#e3f0ec"/>
+ <path d="M44 22 Q60 14 76 22 L74 70 Q60 74 46 70 Z" fill="${C.chair}"/><path d="M48 54 Q60 50 72 54" stroke="#2f6b5f" stroke-width="5" fill="none" stroke-linecap="round"/>
+ <rect x="34" y="72" width="52" height="12" rx="6" fill="${C.chairD}"/>
+ <path d="M30 60 h10 v14" stroke="${C.chairD}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M90 60 h-10 v14" stroke="${C.chairD}" stroke-width="4" fill="none" stroke-linecap="round"/>
+ <rect x="57" y="84" width="6" height="22" fill="${C.metal}"/>
+ <path d="M36 112 L60 104 L84 112" stroke="${C.metal}" stroke-width="5" fill="none" stroke-linecap="round"/>
+ <circle cx="36" cy="115" r="4" fill="${C.chairD}"/><circle cx="84" cy="115" r="4" fill="${C.chairD}"/><circle cx="60" cy="112" r="4" fill="${C.chairD}"/></svg>`;}
+
+function scene(step){ // side view: person seated at desk
+ const ann={
+  seat:`<path d="M100 138 L106 122" stroke="${C.red}" stroke-width="2.5" fill="none" stroke-linecap="round" marker-end="url(#ah)"/>
+        <text x="90" y="149" font-size="9" fill="${C.red}" font-weight="700">lever</text>
+        <text x="138" y="122" font-size="9" fill="${C.ok}" font-weight="700">90°</text>
+        <path d="M120 162 h28" stroke="${C.ok}" stroke-width="3" stroke-linecap="round"/>
+        <text x="146" y="150" font-size="9" fill="${C.ok}" font-weight="700">feet flat</text>`,
+  back:`<path d="M52 98 Q44 84 50 70" stroke="#f2b629" stroke-width="7" fill="none" stroke-linecap="round" opacity=".95"/>
+        <path d="M22 66 v-14 M17 57 l5 -5 l5 5 M22 84 v14 M17 93 l5 5 l5 -5" stroke="${C.red}" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="-36" y="74" font-size="9" fill="${C.red}" font-weight="700">move up</text><text x="-36" y="85" font-size="9" fill="${C.red}" font-weight="700">or down</text>`,
+  arms:`<path d="M82 36 L206 30" stroke="${C.red}" stroke-width="1.8" stroke-dasharray="4 4"/>
+        <text x="130" y="26" font-size="9" fill="${C.red}" font-weight="700">eye level</text>
+        <path d="M84 72 v12 h12" stroke="${C.ok}" stroke-width="2" fill="none"/>
+        <text x="88" y="70" font-size="9" fill="${C.ok}" font-weight="700">90°</text>`
+ }[step];
+ return `<svg width="300" height="174" viewBox="-40 0 300 172" aria-hidden="true">
+ <defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${C.red}"/></marker></defs>
+ <rect x="0" y="164" width="260" height="4" rx="2" fill="#e3e6e4"/>
+ <rect x="132" y="84" width="124" height="7" rx="3" fill="${C.wood}"/><rect x="242" y="91" width="7" height="73" fill="#b9a88e"/>
+ <rect x="196" y="76" width="30" height="5" rx="2" fill="${C.metal}"/><rect x="208" y="50" width="5" height="28" fill="${C.metal}"/><rect x="204" y="22" width="9" height="34" rx="2" fill="${C.chairD}"/>
+ <path d="M44 156 H116" stroke="${C.chairD}" stroke-width="5" stroke-linecap="round"/>
+ <circle cx="46" cy="160" r="4" fill="${C.chairD}"/><circle cx="80" cy="160" r="4" fill="${C.chairD}"/><circle cx="114" cy="160" r="4" fill="${C.chairD}"/>
+ <rect x="77" y="116" width="7" height="40" fill="${C.metal}"/>
+ <path d="M46 44 Q38 72 44 106" stroke="${C.chair}" stroke-width="13" fill="none" stroke-linecap="round"/>
+ <rect x="44" y="104" width="80" height="13" rx="6" fill="${C.chair}"/>
+ <path d="M104 104 V90" stroke="${C.chairD}" stroke-width="4"/><rect x="84" y="86" width="34" height="6" rx="3" fill="${C.chairD}"/>
+ <path d="M64 104 L128 104" stroke="${C.pants}" stroke-width="16" stroke-linecap="round"/>
+ <path d="M128 104 L130 154" stroke="${C.pants}" stroke-width="13" stroke-linecap="round"/>
+ <ellipse cx="138" cy="158" rx="11" ry="5" fill="${C.shoe}"/>
+ <path d="M66 52 L62 100" stroke="${C.shirt}" stroke-width="22" stroke-linecap="round"/>
+ <path d="M70 40 L68 48" stroke="${C.skin}" stroke-width="8" stroke-linecap="round"/>
+ <circle cx="72" cy="30" r="12" fill="${C.skin}"/>
+ <path d="M60 31 A12 12 0 0 1 82 22 Q76 18 68 21 Q61 24 60 31 Z" fill="${C.hair}"/><circle cx="80" cy="30" r="1.4" fill="${C.ink||'#17322d'}"/>
+ <path d="M70 56 L78 86" stroke="${C.shirt}" stroke-width="10" stroke-linecap="round"/>
+ <path d="M78 86 L122 82" stroke="${C.skin}" stroke-width="7" stroke-linecap="round"/><circle cx="124" cy="82" r="4.5" fill="${C.skin}"/>
+ ${ann}</svg>`;
+}
+
+/* Front view upper body for workout videos. 'anim' decides which parts move. */
+function body(kind){
+ const hl={roll:'M100 66 Q120 74 140 66 L162 80 Q120 92 78 80 Z',tuck:'',opener:'M92 84 Q120 96 148 84 L148 104 Q120 112 92 104 Z',twist:'M90 140 Q120 150 150 140 L150 166 Q120 172 90 166 Z',tilt:'M104 60 Q112 64 118 66 L118 80 Q108 78 98 72 Z'}[kind];
+ if(kind==='tuck'){ // side profile
+  return `<svg width="240" height="210" viewBox="0 0 240 210" aria-hidden="true">
+   <path d="M96 196 L104 112 Q108 92 128 90 L150 92 Q166 96 166 116 L170 196 Z" fill="${C.shirt}"/>
+   <rect x="126" y="70" width="18" height="26" rx="6" fill="${C.skin}"/>
+   <path d="M122 76 Q130 90 146 84" fill="#e8b392" opacity=".0"/>
+   <ellipse cx="129" cy="80" rx="6" ry="13" fill="#c0392b" opacity=".3"/>
+   <g class="anim" style="animation:tuck 3s ease-in-out infinite">
+     <circle cx="138" cy="52" r="24" fill="${C.skin}"/>
+     <path d="M114 50 A24 24 0 0 1 160 40 Q150 30 136 30 Q118 32 114 50 Z" fill="${C.hair}"/>
+     <path d="M161 52 l7 6 l-7 2" fill="${C.skin}"/><circle cx="152" cy="48" r="2" fill="#17322d"/>
+   </g>
+   <path d="M190 56 H160" stroke="${C.red}" stroke-width="3" stroke-linecap="round" marker-end="url(#ah2)"/>
+   <defs><marker id="ah2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${C.red}"/></marker></defs>
+  </svg>`;}
+ const armL=kind==='opener'?'style="animation:openL 3s ease-in-out infinite;transform-origin:84px 80px"':'';
+ const armR=kind==='opener'?'style="animation:openR 3s ease-in-out infinite;transform-origin:156px 80px"':'';
+ const upper=kind==='roll'?'style="animation:shrug 2.4s ease-in-out infinite"':(kind==='twist'?'style="animation:twist 3.2s ease-in-out infinite;transform-origin:120px 200px"':'');
+ const head=kind==='tilt'?'style="animation:tilt 3.2s ease-in-out infinite;transform-origin:120px 66px"':'';
+ const arrows={roll:`<path class="spin" d="M66 64 a12 12 0 1 1 0.1 0" stroke="${C.red}" stroke-width="2.6" fill="none" marker-end="url(#ah3)"/><path class="spin" d="M174 64 a12 12 0 1 1 0.1 0" stroke="${C.red}" stroke-width="2.6" fill="none" marker-end="url(#ah3)"/>`,
+  opener:`<path d="M70 120 l-18 6" stroke="${C.red}" stroke-width="3" marker-end="url(#ah3)"/><path d="M170 120 l18 6" stroke="${C.red}" stroke-width="3" marker-end="url(#ah3)"/>`,
+  twist:`<path d="M80 186 Q120 204 160 186" stroke="${C.red}" stroke-width="3" fill="none" marker-start="url(#ah3)" marker-end="url(#ah3)"/>`,
+  tilt:`<path d="M150 22 Q170 34 168 56" stroke="${C.red}" stroke-width="3" fill="none" marker-end="url(#ah3)"/>`}[kind]||'';
+ return `<svg width="240" height="210" viewBox="0 0 240 210" aria-hidden="true">
+  <defs><marker id="ah3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${C.red}"/></marker></defs>
+  <rect x="70" y="150" width="100" height="56" rx="14" fill="${C.chair}" opacity=".35"/>
+  <g class="anim" ${upper}>
+   <path d="M82 206 L80 96 Q80 74 104 70 L136 70 Q160 74 160 96 L158 206 Z" fill="${C.shirt}"/>
+   <path d="${hl}" fill="#c0392b" opacity=".28"/>
+   <g class="anim" ${armL}><path d="M86 82 L74 140" stroke="${C.shirt}" stroke-width="18" stroke-linecap="round"/><path d="M74 140 L84 186" stroke="${C.skin}" stroke-width="13" stroke-linecap="round"/></g>
+   <g class="anim" ${armR}><path d="M154 82 L166 140" stroke="${C.shirt}" stroke-width="18" stroke-linecap="round"/><path d="M166 140 L156 186" stroke="${C.skin}" stroke-width="13" stroke-linecap="round"/></g>
+   <rect x="110" y="54" width="20" height="20" rx="6" fill="${C.skin}"/>
+   <g class="anim" ${head}>
+    <circle cx="120" cy="38" r="24" fill="${C.skin}"/>
+    <path d="M96 36 A24 24 0 0 1 144 36 Q140 18 120 16 Q100 18 96 36 Z" fill="${C.hair}"/>
+    <circle cx="111" cy="40" r="2" fill="#17322d"/><circle cx="129" cy="40" r="2" fill="#17322d"/><path d="M113 50 Q120 54 127 50" stroke="#a0603d" stroke-width="2" fill="none" stroke-linecap="round"/>
+   </g>
+  </g>
+  ${arrows}
+ </svg>`;
+}
+
+/* ---------- Workouts ---------- */
+const MOVES={roll:['Shoulder rolls','Sit back in your chair. Roll both shoulders up, back and down, slowly.','Shoulders'],
+ tuck:['Chin tucks','Look straight ahead and gently draw your chin back, as if making a double chin. Hold for three seconds.','Neck'],
+ opener:['Chest opener','Hold the armrests, squeeze your shoulder blades together and lift your chest.','Chest and upper back'],
+ twist:['Seated twist','Keep your feet flat and gently turn to one side using the backrest, then to the other.','Lower back'],
+ tilt:['Neck side stretch','Let your right ear drop towards your right shoulder and hold, then switch sides.','Side of the neck']};
+const WORKOUTS={reset:{name:'Shoulder reset',type:'move',moves:['roll','tuck','opener','twist'],time:'10:30'},
+ neck:{name:'Neck release',type:'move',moves:['tuck','tilt','roll','tuck']},
+ back:{name:'Lower-back unwind',type:'move',moves:['twist','opener','roll','twist']},
+ open:{name:'Desk chest opener',type:'move',moves:['opener','roll','opener','twist']},
+ spy:{name:'I Spy',type:'eyes',time:'11:45',min:'1 min'},
+ far:{name:'Look far away',type:'eyes',soon:true,min:'1 min'},
+ breathe:{name:'Breathe and reset',type:'calm',time:'16:00'},
+ wind:{name:'Evening wind-down',type:'calm',time:'18:00',min:'5 min'},
+ focus:{name:'Focus music',type:'calm',soon:true,min:'25 min'}};
+const TYPE={move:'Move',eyes:'Rest your eyes',calm:'Calm down'};
+function sub(w){if(w.soon)return (w.min||'2 min')+' · coming soon';return (w.min||'2 min')+' · '+TYPE[w.type];}
+function thumb(w){if(w.type==='move')return miniIcon();
+ if(w.type==='eyes')return '<svg width="30" height="30" viewBox="0 0 30 30"><path d="M2 15 Q15 3 28 15 Q15 27 2 15 Z" fill="#fff" stroke="#1f4d45" stroke-width="2"/><circle cx="15" cy="15" r="5" fill="#4caf7a"/></svg>';
+ return '<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="11" fill="#f2b629" opacity=".8"/><circle cx="15" cy="15" r="6" fill="#f7d27a"/></svg>';}
+function wkRow(key,extra){const w=WORKOUTS[key];
+ return `<button class="wk" onclick="openWorkout('${key}')"><div class="thumb">${thumb(w)}</div><div><b>${w.name}</b><span>${sub(w)}</span></div><em>${extra||'Start'}</em></button>`;}
+function miniIcon(){return `<svg width="34" height="34" viewBox="60 10 120 120"><circle cx="120" cy="40" r="22" fill="${C.skin}"/><path d="M84 130 L82 96 Q82 74 104 70 L136 70 Q158 74 158 96 L156 130 Z" fill="${C.shirt}"/></svg>`;}
+function renderToday(){const L=document.getElementById('todayList');
+ L.innerHTML=['reset','spy','breathe'].map(k=>wkRow(k, state.done[k]?'✓ done':WORKOUTS[k].time)).join('');}
+let libFilter='all';
+function renderLib(){const L=document.getElementById('libList');
+ L.innerHTML=Object.keys(WORKOUTS).filter(k=>libFilter==='all'||WORKOUTS[k].type===libFilter).map(k=>wkRow(k,state.done[k]?'✓ done':(WORKOUTS[k].soon?'Soon':'Start'))).join('');}
+function filterLib(el,f){libFilter=f;document.querySelectorAll('#libChips .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');renderLib();}
+function openWorkout(key){const w=WORKOUTS[key];if(w.soon){toast(w.name+' is on the roadmap.');return;}
+ state.workout=key;state.onboarding=false;state.prev=document.querySelector('.screen:not(.hidden)').id;
+ if(w.type==='eyes'){startSpy();return;}
+ if(w.type==='calm'){startCalm(w);return;}
+ resetRoutine();
+ document.getElementById('playerSub').textContent='Designed by a physiotherapist · 2 minutes';document.getElementById('playerTitle').textContent=w.name;
+ document.getElementById('playerSteps').style.visibility='hidden';go('routine');}
+/* I Spy */
+const SPY=[['Find something green','#4caf7a'],['Find something round','#f2b629'],['Find the thing furthest away from you','#5b8def']];
+function startSpy(){state.spy=0;renderSpy();go('ispy');}
+function renderSpy(){clearInterval(state.spyT);const p=SPY[state.spy];document.getElementById('spyPrompt').textContent=p[0];document.getElementById('spyDot').style.background=p[1];
+ document.getElementById('spyCount').textContent='Prompt '+(state.spy+1)+' of 3';const bar=document.getElementById('spyBar');bar.style.transition='none';bar.style.width='0%';
+ let t=0;setTimeout(()=>{bar.style.transition='width 1s linear';},30);state.spyT=setInterval(()=>{t++;bar.style.width=Math.min(100,t*20)+'%';if(t>=5)clearInterval(state.spyT);},1000);}
+function spyFound(){if(state.spy<2){state.spy++;renderSpy();}else{clearInterval(state.spyT);breakDone('Nice, your eyes had a break.');}}
+/* Calm */
+function startCalm(w){document.getElementById('calmTitle').textContent=w.name;document.getElementById('calmTrack').textContent=w.type==='calm'&&w.name.includes('Evening')?'Evening wind-down':'Calm piano';
+ state.calmLeft=w.min==='5 min'?300:120;state.calmTotal=state.calmLeft;calmStop();document.getElementById('calmTime').textContent=fmt(state.calmLeft);document.getElementById('calmBar').style.width='0%';
+ document.getElementById('breathText').textContent='Press play';go('calm');}
+function fmt(x){return Math.floor(x/60)+':'+String(x%60).padStart(2,'0');}
+function calmToggle(){if(state.calmT){calmStop();return;}document.getElementById('breath').classList.add('on');document.getElementById('calmPlay').textContent='❚❚';
+ let phase=0;const txt=document.getElementById('breathText');txt.textContent='Breathe in…';
+ state.calmT=setInterval(()=>{state.calmLeft=Math.max(0,state.calmLeft-10);document.getElementById('calmTime').textContent=fmt(state.calmLeft);
+  document.getElementById('calmBar').style.width=(100*(1-state.calmLeft/state.calmTotal))+'%';phase++;txt.textContent=(phase%8)<4?'Breathe in…':'Breathe out…';
+  if(state.calmLeft<=0){calmStop();txt.textContent='All done';}},1000);}
+function calmStop(){clearInterval(state.calmT);state.calmT=null;document.getElementById('breath').classList.remove('on');document.getElementById('calmPlay').textContent='▶';}
+function calmDone(){calmStop();breakDone('Nice, that was a calm two minutes.');}
+function breakDone(msg){state.done[state.workout]=true;document.getElementById('statDone').textContent=Object.values(state.done).filter(Boolean).length;toast(msg);go(state.prev||'home');}
+function leaveBreak(){clearInterval(state.spyT);calmStop();go(state.prev||'home');}
+function leavePlayer(){stopRoutine();go(state.onboarding?'nudges':state.prev);}
+
+/* ---------- Onboarding ---------- */
+(function(){const p='111101111100101001101101101111111111000000000101110101011010110111110001111101011';const q=document.getElementById('qr');
+  for(let i=0;i<81;i++){const b=document.createElement('b');if(p[i]!=='1')b.className='w';q.appendChild(b);}})();
+document.getElementById('chairArt').innerHTML=chairSvg(180,190);
+document.getElementById('chairThumb').innerHTML=chairSvg(40,40);
+function scanned(ok){state.general=false;setTimeout(()=>{if(ok){state.model='IHOC ErgoFlex Pro';document.getElementById('foundModel').textContent=state.model;go('found');}else go('unknown');},350);}
+function pickModel(m){state.model=m;state.general=false;document.getElementById('foundModel').textContent=m;go('found');}
+function generalSetup(){state.general=true;state.model='your chair';go('feel');toast('General setup: the steps work for most office chairs.');}
+function chip(el,none){const wrap=el.parentNode;if(none){wrap.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');return;}
+  wrap.lastElementChild.classList.remove('on');el.classList.toggle('on');}
+function single(el){el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
+function steps(){return [
+ {t:'Seat height',a:'seat',x:'Sit right back in the chair. Pull the lever under the right side of the seat and raise or lower it until your feet rest flat on the floor and your knees are level with your hips.'},
+ {t:'Back support',a:'back',x:'Move the back support up or down until it fits into the curve of your lower back, just above your belt.'},
+ {t:'Armrests and screen',a:'arms',x:'Lower the armrests until your shoulders relax and your elbows bend at about 90°. The top of your screen should be at eye level.',tip:'<b>Laptop user?</b><p class="small">Raise it on a stand or a few books and use a separate keyboard.</p>'}];}
+function startSetup(){const sel=[...document.querySelectorAll('#feelChips .chip.on')].map(c=>c.textContent.toLowerCase()).filter(t=>t!=='nowhere yet');
+  state.area=sel.length?sel.slice(0,2).join(' and '):'everyday comfort';state.setup=0;renderSetup();go('setup');}
+function renderSetup(){const s=steps()[state.setup];document.getElementById('setupCount').textContent='Step '+(state.setup+1)+' of 3';
+  document.getElementById('setupTitle').textContent=s.t;document.getElementById('setupArt').innerHTML=scene(s.a);document.getElementById('setupText').textContent=s.x;
+  let tip=s.tip||'';
+  if(state.general&&state.setup===0)tip='<b>General setup</b><p class="small">Most chairs have this lever under the right side of the seat. The steps may not match your chair exactly.</p>';
+  const T=document.getElementById('setupTip');T.innerHTML=tip;T.style.display=tip?'block':'none';
+  document.getElementById('setupBtn').textContent=state.setup<2?'Done, next step':'Done, my chair is set up';}
+function setupNext(){if(state.setup<2){state.setup++;renderSetup();}else{go('nudges');}}
+function setupBack(){if(state.setup>0){state.setup--;renderSetup();}else{go('feel');}}
+function tog(el){const on=document.querySelectorAll('#nudgeList .toggle.on').length;
+  if(!el.classList.contains('on')&&on>=3){toast('Up to 3 nudges a day. Turn one off first.');return;}
+  el.classList.toggle('on');el.setAttribute('aria-checked',el.classList.contains('on'));
+  const n=document.querySelectorAll('#nudgeList .toggle.on').length;document.getElementById('nudgeHint').textContent=n+' of 3 chosen.';}
+function askNotif(){if(state.notif===false){startOnboardingWorkout();return;}document.getElementById('notifDialog').classList.remove('hidden');}
+function notif(ok){document.getElementById('notifDialog').classList.add('hidden');state.notif=ok;
+  if(ok){startOnboardingWorkout();}else{document.getElementById('declined').style.display='block';document.getElementById('nudgeBtn').textContent='Continue without nudges';}}
+function startOnboardingWorkout(){state.workout='reset';state.onboarding=true;resetRoutine();
+  document.getElementById('playerSub').textContent='Your first break · a 2-minute desk workout';
+  document.getElementById('playerTitle').textContent='Shoulder reset';document.getElementById('playerSteps').style.visibility='visible';go('routine');}
+
+/* ---------- Player ---------- */
+const DEMO_SECS=6; // 30 seconds per move in the real app; shortened for the demo
+function curMoves(){return WORKOUTS[state.workout].moves;}
+function renderMove(){const k=curMoves()[state.move];const m=MOVES[k];
+  document.getElementById('moveName').textContent=m[0];document.getElementById('moveText').textContent=m[1];document.getElementById('moveArea').textContent=m[2];
+  document.getElementById('moveSvg').innerHTML=body(k);
+  document.querySelectorAll('#moves i').forEach((b,i)=>{b.className=i<state.move?'done':(i===state.move?'now':'')});}
+function tick(){state.remaining--;const pct=1-state.remaining/DEMO_SECS;document.getElementById('moveBar').style.width=(pct*100)+'%';
+  document.getElementById('secs').textContent='0:'+String(Math.round(state.remaining*30/DEMO_SECS)).padStart(2,'0');
+  if(state.remaining<=0)nextMove();}
+function startRoutine(){if(state.timer)return;if(!state.remaining)state.remaining=DEMO_SECS;document.getElementById('video').classList.remove('paused');
+  const b=document.getElementById('routineBtn');b.textContent='Pause';b.onclick=pauseRoutine;state.timer=setInterval(tick,1000);}
+function pauseRoutine(){stopRoutine();const b=document.getElementById('routineBtn');b.textContent='Resume';b.onclick=startRoutine;}
+function stopRoutine(){clearInterval(state.timer);state.timer=null;document.getElementById('video').classList.add('paused');}
+function nextMove(){if(state.move<3){state.move++;state.remaining=DEMO_SECS;renderMove();document.getElementById('moveBar').style.width='0%';document.getElementById('secs').textContent='0:30';}
+  else finishWorkout();}
+function skipMove(){if(!state.timer)startRoutine();nextMove();}
+function finishWorkout(){stopRoutine();state.done[state.workout]=true;finishHome();
+  if(state.onboarding){go('trial');}else{toast('Nice, '+WORKOUTS[state.workout].name.toLowerCase()+' done.');go(state.prev==='library'?'library':'home');}
+  document.getElementById('statDone').textContent=Object.values(state.done).filter(Boolean).length;}
+function finishHome(){document.getElementById('homeChair').textContent=state.general?'General setup done':state.model.replace('IHOC ','')+' set up';
+  document.getElementById('chairName').textContent=state.general?'Your chair (general setup)':state.model;
+  if(state.notif===false){document.getElementById('nextLabel').textContent='Next workout';document.getElementById('homeNote').textContent='Notifications are off, so open the app when you\'re ready. You can turn nudges on in Settings.';document.getElementById('meNudges').textContent='Off';}
+  else{document.getElementById('nextLabel').textContent='Next nudge';document.getElementById('homeNote').textContent='We\'ll send a gentle notification.';document.getElementById('meNudges').textContent='10:30, 11:45, 16:00';}}
+function resetRoutine(){stopRoutine();state.move=0;state.remaining=0;renderMove();document.getElementById('moveBar').style.width='0%';document.getElementById('secs').textContent='0:30';
+  const b=document.getElementById('routineBtn');b.textContent='Start · 2 minutes';b.onclick=startRoutine;}
+function resetNudges(){state.notif=null;document.getElementById('declined').style.display='none';const b=document.getElementById('nudgeBtn');b.textContent='Turn on my nudges';b.disabled=false;}
+function restart(){document.getElementById('clock').textContent='9:41';document.getElementById('toast').classList.remove('show');state.general=false;state.model='IHOC ErgoFlex Pro';state.done={reset:false};setDays(42);
+  document.getElementById('foundModel').textContent=state.model;resetNudges();state.workout='reset';resetRoutine();go('welcome');}
+function jumpUnknown(){restart();go('scan');setTimeout(()=>scanned(false),400);}
+function jumpNudges(){restart();state.setup=2;renderSetup();go('nudges');setTimeout(askNotif,500);}
+function setDays(n){document.getElementById('daysPill').textContent='Free · '+n+' days left';document.getElementById('daysPill2').textContent=n+' days left';}
+function day2(){restart();document.getElementById('clock').textContent='10:30';setDays(41);state.notif=true;state.done={reset:false};finishHome();go('lock');}
+function day2Open(){openWorkout('reset');}
+function jumpHome(){restart();state.done.reset=true;finishHome();go('home');}
+renderMove();go('welcome');
+</script>
+</body>
+</html>
